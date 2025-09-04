@@ -20,7 +20,7 @@ const supabase = createClient(
 )
 
 // Sign up route
-app.post('/make-server-f4f78c5a/signup', async (c) => {
+app.post('/signup', async (c) => {
   try {
     const { email, password, name, accountType } = await c.req.json();
     
@@ -97,7 +97,7 @@ app.post('/make-server-f4f78c5a/signup', async (c) => {
 })
 
 // Get user profile
-app.get('/make-server-f4f78c5a/profile/:userId', async (c) => {
+app.get('/profile/:userId', async (c) => {
   try {
     const userId = c.req.param('userId')
     const profile = await kv.get(`profile:${userId}`)
@@ -114,7 +114,7 @@ app.get('/make-server-f4f78c5a/profile/:userId', async (c) => {
 })
 
 // Update user profile
-app.put('/make-server-f4f78c5a/profile', async (c) => {
+app.put('/profile', async (c) => {
   try {
     const accessToken = c.req.header('Authorization')?.split(' ')[1]
     const { data: { user }, error } = await supabase.auth.getUser(accessToken)
@@ -141,7 +141,7 @@ app.put('/make-server-f4f78c5a/profile', async (c) => {
 })
 
 // Create service listing
-app.post('/make-server-f4f78c5a/listings', async (c) => {
+app.post('/listings', async (c) => {
   try {
     const accessToken = c.req.header('Authorization')?.split(' ')[1]
     const { data: { user }, error } = await supabase.auth.getUser(accessToken)
@@ -180,7 +180,7 @@ app.post('/make-server-f4f78c5a/listings', async (c) => {
 })
 
 // Get all listings
-app.get('/make-server-f4f78c5a/listings', async (c) => {
+app.get('/listings', async (c) => {
   try {
     const category = c.req.query('category')
     const allListings = await kv.getByPrefix('listing:')
@@ -199,7 +199,7 @@ app.get('/make-server-f4f78c5a/listings', async (c) => {
 })
 
 // Get single listing
-app.get('/make-server-f4f78c5a/listings/:id', async (c) => {
+app.get('/listings/:id', async (c) => {
   try {
     const listingId = c.req.param('id')
     const listing = await kv.get(`listing:${listingId}`)
@@ -216,7 +216,7 @@ app.get('/make-server-f4f78c5a/listings/:id', async (c) => {
 })
 
 // Update listing
-app.put('/make-server-f4f78c5a/listings/:id', async (c) => {
+app.put('/listings/:id', async (c) => {
   try {
     const accessToken = c.req.header('Authorization')?.split(' ')[1]
     const { data: { user }, error } = await supabase.auth.getUser(accessToken)
@@ -259,7 +259,7 @@ app.put('/make-server-f4f78c5a/listings/:id', async (c) => {
 })
 
 // Delete listing
-app.delete('/make-server-f4f78c5a/listings/:id', async (c) => {
+app.delete('/listings/:id', async (c) => {
   try {
     const accessToken = c.req.header('Authorization')?.split(' ')[1]
     const { data: { user }, error } = await supabase.auth.getUser(accessToken)
@@ -296,7 +296,7 @@ app.delete('/make-server-f4f78c5a/listings/:id', async (c) => {
 })
 
 // Submit offer
-app.post('/make-server-f4f78c5a/offers', async (c) => {
+app.post('/offers', async (c) => {
   try {
     const accessToken = c.req.header('Authorization')?.split(' ')[1]
     const { data: { user }, error } = await supabase.auth.getUser(accessToken)
@@ -347,7 +347,7 @@ app.post('/make-server-f4f78c5a/offers', async (c) => {
 })
 
 // Get companies by category (only company profiles)
-app.get('/make-server-f4f78c5a/companies', async (c) => {
+app.get('/companies', async (c) => {
   try {
     const category = c.req.query('category')
     const allProfiles = await kv.getByPrefix('profile:')
@@ -367,7 +367,7 @@ app.get('/make-server-f4f78c5a/companies', async (c) => {
 })
 
 // Convert individual account to company account
-app.post('/make-server-f4f78c5a/convert-to-company', async (c) => {
+app.post('/convert-to-company', async (c) => {
   try {
     const accessToken = c.req.header('Authorization')?.split(' ')[1]
     const { data: { user }, error } = await supabase.auth.getUser(accessToken)
