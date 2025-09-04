@@ -1,26 +1,22 @@
-import type { 
-  User, 
-  UserProfile, 
-  ServiceListing, 
-  Offer, 
-  AuthFormData, 
-  CreateListingData, 
-  OfferFormData,
-  ApiResponse 
-} from '../types';
-import { API_BASE_URL, publicAnonKey } from './config';
+import { projectId, publicAnonKey } from './config'
+
+export interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  error?: string
+}
 
 // Base API client
 class ApiClient {
-  private baseUrl: string;
-  private defaultHeaders: Record<string, string>;
+  private baseUrl: string
+  private defaultHeaders: Record<string, string>
 
   constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
+    this.baseUrl = baseUrl
     this.defaultHeaders = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${publicAnonKey}`,
-    };
+    }
   }
 
   private async request<T>(
@@ -28,120 +24,82 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
-      const url = `${this.baseUrl}${endpoint}`;
+      const url = `${this.baseUrl}${endpoint}`
       const response = await fetch(url, {
         ...options,
         headers: {
           ...this.defaultHeaders,
           ...options.headers,
         },
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok) {
-        return { error: data.error || 'An error occurred' };
+        return { success: false, error: data.error || 'An error occurred' }
       }
 
-      return { data };
+      return { success: true, data }
     } catch (error) {
-      console.error('API request failed:', error);
-      return { error: 'Network error occurred' };
+      console.error('API request failed:', error)
+      return { success: false, error: 'Network error occurred' }
     }
   }
 
   // Auth endpoints
-  async signUp(userData: AuthFormData): Promise<ApiResponse<User>> {
+  async signUp(userData: any): Promise<ApiResponse<any>> {
     return this.request('/signup', {
       method: 'POST',
       body: JSON.stringify(userData),
-    });
+    })
   }
 
   // Profile endpoints
-  async getProfile(userId: string): Promise<ApiResponse<UserProfile>> {
-    return this.request(`/profile/${userId}`);
+  async getProfile(userId: string): Promise<any> {
+    const response = await this.request(`/profile/${userId}`)
+    return response.data
   }
 
-  async updateProfile(profileData: Partial<UserProfile>, accessToken: string): Promise<ApiResponse<UserProfile>> {
+  async updateProfile(profileData: any, accessToken: string): Promise<ApiResponse<any>> {
     return this.request('/profile', {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
       body: JSON.stringify(profileData),
-    });
-  }
-
-  async convertToCompany(companyName: string, accessToken: string): Promise<ApiResponse<UserProfile>> {
-    return this.request('/convert-to-company', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ companyName }),
-    });
+    })
   }
 
   // Listings endpoints
-  async getListings(category?: string): Promise<ApiResponse<ServiceListing[]>> {
-    const params = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : '';
-    return this.request(`/listings${params}`);
+  async getListings(category?: string): Promise<any[]> {
+    const params = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : ''
+    const response = await this.request(`/listings${params}`)
+    return response.data || []
   }
 
-  async getListing(id: string): Promise<ApiResponse<ServiceListing>> {
-    return this.request(`/listings/${id}`);
+  async getListing(id: string): Promise<any> {
+    const response = await this.request(`/listings/${id}`)
+    return response.data
   }
 
-  async createListing(listingData: CreateListingData, accessToken: string): Promise<ApiResponse<ServiceListing>> {
+  async createListing(listingData: any, accessToken: string): Promise<ApiResponse<any>> {
     return this.request('/listings', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
       body: JSON.stringify(listingData),
-    });
-  }
-
-  async updateListing(id: string, listingData: Partial<CreateListingData>, accessToken: string): Promise<ApiResponse<ServiceListing>> {
-    return this.request(`/listings/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(listingData),
-    });
-  }
-
-  async deleteListing(id: string, accessToken: string): Promise<ApiResponse<void>> {
-    return this.request(`/listings/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-  }
-
-  // Offers endpoints
-  async submitOffer(offerData: OfferFormData & { listingId: string }, accessToken: string): Promise<ApiResponse<Offer>> {
-    return this.request('/offers', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
-        ...offerData,
-        examples: offerData.examples.split('\n').filter(line => line.trim())
-      }),
-    });
+    })
   }
 
   // Companies endpoints
-  async getCompanies(category?: string): Promise<ApiResponse<UserProfile[]>> {
-    const params = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : '';
-    return this.request(`/companies${params}`);
+  async getCompanies(category?: string): Promise<any[]> {
+    const params = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : ''
+    const response = await this.request(`/companies${params}`)
+    return response.data || []
   }
 }
 
 // Export singleton instance
-export const api = new ApiClient(API_BASE_URL);
+const API_BASE_URL = `https://${projectId}.supabase.co/functions/v1/make-server-f4f78c5a`
+export const api = new ApiClient(API_BASE_URL)

@@ -16,10 +16,10 @@ export function CompanyShowcase() {
   useEffect(() => {
     async function fetchCompanies() {
       try {
-        const response = await api.getCompanies()
-        if (response.success && Array.isArray(response.data)) {
+        const allCompanies = await api.getCompanies()
+        if (Array.isArray(allCompanies)) {
           // Limit to 6 companies and sort by rating
-          const topCompanies = response.data
+          const topCompanies = allCompanies
             .sort((a, b) => (b.rating || 0) - (a.rating || 0))
             .slice(0, 6)
           setCompanies(topCompanies)
