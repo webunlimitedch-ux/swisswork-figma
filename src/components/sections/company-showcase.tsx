@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,7 +18,6 @@ export function CompanyShowcase() {
       try {
         const allCompanies = await api.getCompanies()
         if (Array.isArray(allCompanies)) {
-          // Limit to 6 companies and sort by rating
           const topCompanies = allCompanies
             .sort((a, b) => (b.rating || 0) - (a.rating || 0))
             .slice(0, 6)

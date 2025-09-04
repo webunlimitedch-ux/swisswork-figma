@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,7 +19,6 @@ export function JobListings() {
       try {
         const allListings = await api.getListings()
         if (Array.isArray(allListings)) {
-          // Filter for open listings and limit to 6
           const openListings = allListings
             .filter(listing => listing.status === 'open')
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())

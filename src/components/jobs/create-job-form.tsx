@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,7 +15,7 @@ import { toast } from 'sonner'
 import { CATEGORIES, BUDGET_RANGES, TIMELINE_OPTIONS } from '@/types'
 
 export function CreateJobForm() {
-  const { user } = useAuthContext()
+  const { user, accessToken } = useAuthContext()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
@@ -34,12 +32,12 @@ export function CreateJobForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) return
+    if (!user || !accessToken) return
 
     setLoading(true)
 
     try {
-      const response = await api.createListing(formData, user.access_token)
+      const response = await api.createListing(formData, accessToken)
       
       if (response.success) {
         toast.success('Job erfolgreich erstellt!')

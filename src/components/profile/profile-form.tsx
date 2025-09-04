@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,7 +15,7 @@ import { toast } from 'sonner'
 import { CATEGORIES } from '@/types'
 
 export function ProfileForm() {
-  const { user, userProfile, updateProfile } = useAuthContext()
+  const { user, userProfile, updateProfile, accessToken } = useAuthContext()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -50,12 +48,12 @@ export function ProfileForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) return
+    if (!user || !accessToken) return
 
     setLoading(true)
 
     try {
-      const response = await api.updateProfile(formData, user.access_token)
+      const response = await api.updateProfile(formData, accessToken)
       
       if (response.success) {
         updateProfile(response.data)

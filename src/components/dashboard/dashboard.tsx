@@ -1,16 +1,13 @@
 'use client'
 
-'use client'
-
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { LayoutDashboard, Briefcase, MessageSquare, DollarSign, Plus } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { api } from '@/lib/api'
 import { useAuthContext } from '@/providers/auth-provider'
+import { api } from '@/lib/api'
 import { formatBudget, getTimeAgo } from '@/lib/utils'
 import type { ServiceListing, Offer } from '@/types'
 
@@ -19,7 +16,6 @@ export function Dashboard() {
   const [userListings, setUserListings] = useState<ServiceListing[]>([])
   const [receivedOffers, setReceivedOffers] = useState<Offer[]>([])
   const [loading, setLoading] = useState(true)
-
 
   useEffect(() => {
     if (user) {
@@ -31,13 +27,11 @@ export function Dashboard() {
     try {
       setLoading(true)
       
-      // Get all listings and filter for current user
       const allListings = await api.getListings()
       const userListings = allListings.filter(listing => listing.client_id === user?.id)
       
       setUserListings(userListings)
       
-      // Extract all offers from user's listings
       const offers = userListings?.flatMap(listing => 
         listing.offers?.map(offer => ({
           ...offer,
@@ -77,7 +71,6 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardContent className="p-6">
@@ -215,7 +208,7 @@ export function Dashboard() {
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1">
                         <CardTitle className="text-lg mb-1">
-                          Angebot für: {offer.listing_title}
+                          Angebot für: {(offer as any).listing_title}
                         </CardTitle>
                         <p className="font-medium">{offer.company_name}</p>
                       </div>

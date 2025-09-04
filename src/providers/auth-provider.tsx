@@ -7,6 +7,7 @@ import type { User, UserProfile } from '@/types'
 interface AuthContextType {
   user: User | null
   userProfile: UserProfile | null
+  accessToken: string | null
   loading: boolean
   error: string | null
   signOut: () => Promise<void>

@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Building2, User } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { supabase } from '@/lib/supabase'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
 
@@ -24,7 +24,6 @@ export function AuthForm() {
   })
   
   const router = useRouter()
-  const supabase = createClient()
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -62,17 +61,21 @@ export function AuthForm() {
     }
 
     try {
-      await api.signUp({
+      const response = await api.signUp({
         email: formData.email,
         password: formData.password,
         name: formData.name,
         accountType: formData.accountType,
       })
 
-      toast.success('Konto erfolgreich erstellt!')
-      router.push('/dashboard')
+      if (response.success) {
+        toast.success('Konto erfolgreich erstellt!')
+        router.push('/dashboard')
+      } else {
+        toast.error(response.error || 'Registrierung fehlgeschlagen')
+      }
     } catch (error: any) {
-      toast.error(error.message || 'Registrierung fehlgeschlagen')
+      toast.error('Ein Fehler ist aufgetreten')
     } finally {
       setLoading(false)
     }

@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { supabase } from '@/lib/supabase'
 import { api } from '@/lib/api'
 import type { User, UserProfile } from '@/types'
 
 interface AuthState {
   user: User | null
   userProfile: UserProfile | null
+  accessToken: string | null
   loading: boolean
   error: string | null
 }
@@ -16,11 +17,10 @@ export function useAuth() {
   const [state, setState] = useState<AuthState>({
     user: null,
     userProfile: null,
+    accessToken: null,
     loading: true,
     error: null,
   })
-
-  const supabase = createClient()
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     try {
@@ -41,6 +41,7 @@ export function useAuth() {
         setState(prev => ({
           ...prev,
           user: session.user as User,
+          accessToken: session.access_token,
         }))
         await fetchUserProfile(session.user.id)
       }
@@ -50,7 +51,7 @@ export function useAuth() {
     } finally {
       setState(prev => ({ ...prev, loading: false }))
     }
-  }, [supabase, fetchUserProfile])
+  }, [fetchUserProfile])
 
   const signOut = useCallback(async () => {
     try {
@@ -58,6 +59,7 @@ export function useAuth() {
       setState({
         user: null,
         userProfile: null,
+        accessToken: null,
         loading: false,
         error: null,
       })
@@ -65,7 +67,7 @@ export function useAuth() {
       console.error('Error signing out:', error)
       setState(prev => ({ ...prev, error: 'Failed to sign out' }))
     }
-  }, [supabase])
+  }, [])
 
   const updateProfile = useCallback((profile: UserProfile) => {
     setState(prev => ({ ...prev, userProfile: profile }))
@@ -80,6 +82,7 @@ export function useAuth() {
           setState({
             user: null,
             userProfile: null,
+            accessToken: null,
             loading: false,
             error: null,
           })
@@ -87,6 +90,7 @@ export function useAuth() {
           setState(prev => ({
             ...prev,
             user: session.user as User,
+            accessToken: session.access_token,
           }))
           await fetchUserProfile(session.user.id)
         }
@@ -96,7 +100,7 @@ export function useAuth() {
     return () => {
       subscription?.unsubscribe()
     }
-  }, [checkUser, fetchUserProfile, supabase])
+  }, [checkUser, fetchUserProfile])
 
   return {
     ...state,

@@ -1,7 +1,5 @@
-import { Suspense } from 'react'
 import { Header } from '@/components/layout/header'
 import { CompanyShowcase } from '@/components/sections/company-showcase'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 export default function CompaniesPage() {
   return (
@@ -14,9 +12,7 @@ export default function CompaniesPage() {
             Entdecken Sie professionelle Dienstleister in der Schweiz
           </p>
         </div>
-        <Suspense fallback={<LoadingSpinner />}>
-          <CompanyShowcase />
-        </Suspense>
+        <CompanyShowcase />
       </main>
     </div>
   )

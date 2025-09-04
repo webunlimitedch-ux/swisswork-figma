@@ -1,7 +1,5 @@
-import { Suspense } from 'react'
 import { Header } from '@/components/layout/header'
 import { JobListings } from '@/components/sections/job-listings'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 export default function JobsPage() {
   return (
@@ -14,9 +12,7 @@ export default function JobsPage() {
             Durchsuchen Sie alle verfügbaren Stellenausschreibungen
           </p>
         </div>
-        <Suspense fallback={<LoadingSpinner />}>
-          <JobListings />
-        </Suspense>
+        <JobListings />
       </main>
     </div>
   )
