@@ -3,8 +3,8 @@ export interface User {
   email: string
   created_at: string
   user_metadata: {
-    name: string
-    account_type: 'individual' | 'company'
+    name?: string
+    account_type?: 'individual' | 'company'
   }
 }
 
@@ -35,7 +35,7 @@ export interface ServiceListing {
   budget: number
   timeline: string
   status: 'open' | 'closed' | 'in_progress'
-  offers: Offer[]
+  offers?: Offer[]
   created_at: string
   updated_at?: string
 }
@@ -74,6 +74,12 @@ export interface OfferFormData {
   price: string
   timeline: string
   examples: string
+}
+
+export interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  error?: string
 }
 
 export const CATEGORIES = [

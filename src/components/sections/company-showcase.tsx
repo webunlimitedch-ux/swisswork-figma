@@ -16,9 +16,9 @@ export function CompanyShowcase() {
   useEffect(() => {
     async function fetchCompanies() {
       try {
-        const allCompanies = await api.getCompanies()
-        if (Array.isArray(allCompanies)) {
-          const topCompanies = allCompanies
+        const response = await api.getCompanies()
+        if (response.success && Array.isArray(response.data)) {
+          const topCompanies = response.data
             .sort((a, b) => (b.rating || 0) - (a.rating || 0))
             .slice(0, 6)
           setCompanies(topCompanies)

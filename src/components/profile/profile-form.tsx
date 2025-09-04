@@ -12,12 +12,22 @@ import { Building2, User } from 'lucide-react'
 import { useAuthContext } from '@/providers/auth-provider'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
-import { CATEGORIES } from '@/types'
+import { CATEGORIES, type UserProfile } from '@/types'
+
+interface ProfileFormData {
+  name: string
+  company_name: string
+  description: string
+  category: string
+  website: string
+  phone: string
+  location: string
+}
 
 export function ProfileForm() {
   const { user, userProfile, updateProfile, accessToken } = useAuthContext()
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProfileFormData>({
     name: '',
     company_name: '',
     description: '',
@@ -42,7 +52,7 @@ export function ProfileForm() {
     }
   }, [userProfile])
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof ProfileFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
@@ -55,14 +65,14 @@ export function ProfileForm() {
     try {
       const response = await api.updateProfile(formData, accessToken)
       
-      if (response.success) {
+      if (response.success && response.data) {
         updateProfile(response.data)
         toast.success('Profil erfolgreich aktualisiert!')
         router.push('/dashboard')
       } else {
         toast.error(response.error || 'Fehler beim Speichern')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Ein Fehler ist aufgetreten')
     } finally {
       setLoading(false)

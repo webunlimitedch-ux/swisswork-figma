@@ -11,10 +11,15 @@ import { api } from '@/lib/api'
 import { formatBudget, getTimeAgo } from '@/lib/utils'
 import type { ServiceListing, Offer } from '@/types'
 
+interface ExtendedOffer extends Offer {
+  listing_title?: string
+  listing_id?: string
+}
+
 export function Dashboard() {
   const { user, userProfile } = useAuthContext()
   const [userListings, setUserListings] = useState<ServiceListing[]>([])
-  const [receivedOffers, setReceivedOffers] = useState<Offer[]>([])
+  const [receivedOffers, setReceivedOffers] = useState<ExtendedOffer[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -27,20 +32,21 @@ export function Dashboard() {
     try {
       setLoading(true)
       
-      const allListings = await api.getListings()
-      const userListings = allListings.filter(listing => listing.client_id === user?.id)
-      
-      setUserListings(userListings)
-      
-      const offers = userListings?.flatMap(listing => 
-        listing.offers?.map(offer => ({
-          ...offer,
-          listing_title: listing.title,
-          listing_id: listing.id
-        })) || []
-      ) || []
-      
-      setReceivedOffers(offers)
+      const response = await api.getListings()
+      if (response.success && response.data) {
+        const userListings = response.data.filter(listing => listing.client_id === user?.id)
+        setUserListings(userListings)
+        
+        const offers = userListings?.flatMap(listing => 
+          listing.offers?.map(offer => ({
+            ...offer,
+            listing_title: listing.title,
+            listing_id: listing.id
+          })) || []
+        ) || []
+        
+        setReceivedOffers(offers)
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
@@ -208,7 +214,7 @@ export function Dashboard() {
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1">
                         <CardTitle className="text-lg mb-1">
-                          Angebot für: {(offer as any).listing_title}
+                          Angebot für: {offer.listing_title}
                         </CardTitle>
                         <p className="font-medium">{offer.company_name}</p>
                       </div>

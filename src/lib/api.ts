@@ -1,10 +1,13 @@
-import { supabase } from './supabase'
-
-export interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
-}
+import type { 
+  User, 
+  UserProfile, 
+  ServiceListing, 
+  Offer, 
+  AuthFormData, 
+  CreateListingData, 
+  OfferFormData,
+  ApiResponse 
+} from '@/types'
 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/server`
 
@@ -38,12 +41,7 @@ class ApiClient {
   }
 
   // Auth endpoints
-  async signUp(userData: {
-    email: string
-    password: string
-    name: string
-    accountType: 'individual' | 'company'
-  }): Promise<ApiResponse<any>> {
+  async signUp(userData: AuthFormData): Promise<ApiResponse<User>> {
     return this.request('/signup', {
       method: 'POST',
       body: JSON.stringify(userData),
@@ -51,12 +49,11 @@ class ApiClient {
   }
 
   // Profile endpoints
-  async getProfile(userId: string): Promise<any> {
-    const response = await this.request(`/profile/${userId}`)
-    return response.data
+  async getProfile(userId: string): Promise<ApiResponse<UserProfile>> {
+    return this.request(`/profile/${userId}`)
   }
 
-  async updateProfile(profileData: any, accessToken: string): Promise<ApiResponse<any>> {
+  async updateProfile(profileData: Partial<UserProfile>, accessToken: string): Promise<ApiResponse<UserProfile>> {
     return this.request('/profile', {
       method: 'PUT',
       headers: {
@@ -66,19 +63,27 @@ class ApiClient {
     })
   }
 
+  async convertToCompany(companyName: string, accessToken: string): Promise<ApiResponse<UserProfile>> {
+    return this.request('/convert-to-company', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ companyName }),
+    })
+  }
+
   // Listings endpoints
-  async getListings(category?: string): Promise<any[]> {
+  async getListings(category?: string): Promise<ApiResponse<ServiceListing[]>> {
     const params = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : ''
-    const response = await this.request(`/listings${params}`)
-    return response.data || []
+    return this.request(`/listings${params}`)
   }
 
-  async getListing(id: string): Promise<any> {
-    const response = await this.request(`/listings/${id}`)
-    return response.data
+  async getListing(id: string): Promise<ApiResponse<ServiceListing>> {
+    return this.request(`/listings/${id}`)
   }
 
-  async createListing(listingData: any, accessToken: string): Promise<ApiResponse<any>> {
+  async createListing(listingData: CreateListingData, accessToken: string): Promise<ApiResponse<ServiceListing>> {
     return this.request('/listings', {
       method: 'POST',
       headers: {
@@ -88,7 +93,7 @@ class ApiClient {
     })
   }
 
-  async updateListing(id: string, listingData: any, accessToken: string): Promise<ApiResponse<any>> {
+  async updateListing(id: string, listingData: Partial<CreateListingData>, accessToken: string): Promise<ApiResponse<ServiceListing>> {
     return this.request(`/listings/${id}`, {
       method: 'PUT',
       headers: {
@@ -98,7 +103,7 @@ class ApiClient {
     })
   }
 
-  async deleteListing(id: string, accessToken: string): Promise<ApiResponse<any>> {
+  async deleteListing(id: string, accessToken: string): Promise<ApiResponse<void>> {
     return this.request(`/listings/${id}`, {
       method: 'DELETE',
       headers: {
@@ -107,22 +112,24 @@ class ApiClient {
     })
   }
 
-  // Companies endpoints
-  async getCompanies(category?: string): Promise<any[]> {
-    const params = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : ''
-    const response = await this.request(`/companies${params}`)
-    return response.data || []
-  }
-
   // Offers endpoints
-  async createOffer(offerData: any, accessToken: string): Promise<ApiResponse<any>> {
+  async submitOffer(offerData: OfferFormData & { listingId: string }, accessToken: string): Promise<ApiResponse<Offer>> {
     return this.request('/offers', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
-      body: JSON.stringify(offerData),
+      body: JSON.stringify({
+        ...offerData,
+        examples: offerData.examples.split('\n').filter(line => line.trim())
+      }),
     })
+  }
+
+  // Companies endpoints
+  async getCompanies(category?: string): Promise<ApiResponse<UserProfile[]>> {
+    const params = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : ''
+    return this.request(`/companies${params}`)
   }
 }
 

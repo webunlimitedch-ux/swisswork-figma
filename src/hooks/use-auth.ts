@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import { api } from '@/lib/api'
 import type { User, UserProfile } from '@/types'
 
@@ -22,10 +22,14 @@ export function useAuth() {
     error: null,
   })
 
+  const supabase = createClient()
+
   const fetchUserProfile = useCallback(async (userId: string) => {
     try {
-      const profile = await api.getProfile(userId)
-      setState(prev => ({ ...prev, userProfile: profile }))
+      const response = await api.getProfile(userId)
+      if (response.success && response.data) {
+        setState(prev => ({ ...prev, userProfile: response.data! }))
+      }
     } catch (error) {
       console.error('Error fetching user profile:', error)
     }

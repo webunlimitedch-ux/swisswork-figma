@@ -17,9 +17,10 @@ export function JobListings() {
   useEffect(() => {
     async function fetchListings() {
       try {
-        const allListings = await api.getListings()
-        if (Array.isArray(allListings)) {
-          const openListings = allListings
+        const response = await api.getListings()
+        if (response.success && Array.isArray(response.data)) {
+          // Filter for open listings and limit to 6
+          const openListings = response.data
             .filter(listing => listing.status === 'open')
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
             .slice(0, 6)

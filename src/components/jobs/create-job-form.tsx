@@ -12,12 +12,12 @@ import { Plus } from 'lucide-react'
 import { useAuthContext } from '@/providers/auth-provider'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
-import { CATEGORIES, BUDGET_RANGES, TIMELINE_OPTIONS } from '@/types'
+import { CATEGORIES, BUDGET_RANGES, TIMELINE_OPTIONS, type CreateListingData } from '@/types'
 
 export function CreateJobForm() {
   const { user, accessToken } = useAuthContext()
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateListingData>({
     title: '',
     description: '',
     category: '',
@@ -26,7 +26,7 @@ export function CreateJobForm() {
   })
   const router = useRouter()
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof CreateListingData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
@@ -45,7 +45,7 @@ export function CreateJobForm() {
       } else {
         toast.error(response.error || 'Fehler beim Erstellen')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Ein Fehler ist aufgetreten')
     } finally {
       setLoading(false)

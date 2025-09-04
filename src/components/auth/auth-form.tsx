@@ -9,23 +9,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Building2, User } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
+import type { AuthFormData } from '@/types'
 
 export function AuthForm() {
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AuthFormData>({
     email: '',
     password: '',
     confirmPassword: '',
     name: '',
-    accountType: 'individual' as 'individual' | 'company'
+    accountType: 'individual'
   })
   
   const router = useRouter()
+  const supabase = createClient()
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof AuthFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
@@ -43,8 +45,9 @@ export function AuthForm() {
 
       toast.success('Erfolgreich angemeldet!')
       router.push('/dashboard')
-    } catch (error: any) {
-      toast.error(error.message || 'Anmeldung fehlgeschlagen')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Anmeldung fehlgeschlagen'
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -61,12 +64,7 @@ export function AuthForm() {
     }
 
     try {
-      const response = await api.signUp({
-        email: formData.email,
-        password: formData.password,
-        name: formData.name,
-        accountType: formData.accountType,
-      })
+      const response = await api.signUp(formData)
 
       if (response.success) {
         toast.success('Konto erfolgreich erstellt!')
@@ -74,7 +72,7 @@ export function AuthForm() {
       } else {
         toast.error(response.error || 'Registrierung fehlgeschlagen')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Ein Fehler ist aufgetreten')
     } finally {
       setLoading(false)
@@ -132,7 +130,7 @@ export function AuthForm() {
                 <Label>Kontotyp</Label>
                 <RadioGroup
                   value={formData.accountType}
-                  onValueChange={(value) => handleInputChange('accountType', value)}
+                  onValueChange={(value: 'individual' | 'company') => handleInputChange('accountType', value)}
                   className="grid grid-cols-1 gap-3"
                 >
                   <div className="flex items-center space-x-3 border rounded-lg p-3">
@@ -199,7 +197,7 @@ export function AuthForm() {
                 <Input
                   id="confirm-password"
                   type="password"
-                  value={formData.confirmPassword}
+                  value={formData.confirmPassword || ''}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                   required
                 />
