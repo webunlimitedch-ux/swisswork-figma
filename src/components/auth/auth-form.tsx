@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Building2, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { api } from '@/lib/api'
 import { toast } from 'sonner'
 
 export function AuthForm() {
@@ -61,33 +62,12 @@ export function AuthForm() {
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      await api.signUp({
         email: formData.email,
         password: formData.password,
-        options: {
-          data: {
-            name: formData.name,
-            account_type: formData.accountType,
-          },
-        },
+        name: formData.name,
+        accountType: formData.accountType,
       })
-
-      if (error) throw error
-
-      if (data.user) {
-        // Create profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: data.user.id,
-            email: formData.email,
-            account_type: formData.accountType,
-            name: formData.accountType === 'individual' ? formData.name : undefined,
-            company_name: formData.accountType === 'company' ? formData.name : undefined,
-          })
-
-        if (profileError) throw profileError
-      }
 
       toast.success('Konto erfolgreich erstellt!')
       router.push('/dashboard')

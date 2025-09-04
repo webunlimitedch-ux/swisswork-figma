@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Building2, Star, Award, MapPin } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { api } from '@/lib/api'
 import type { UserProfile } from '@/types'
 
 export function CompanyShowcase() {
@@ -15,18 +15,13 @@ export function CompanyShowcase() {
 
   useEffect(() => {
     async function fetchCompanies() {
-      const supabase = createClient()
-      
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('account_type', 'company')
-          .order('rating', { ascending: false })
-          .limit(6)
-
-        if (error) throw error
-        setCompanies(data || [])
+        const allCompanies = await api.getCompanies()
+        // Limit to 6 companies and sort by rating
+        const topCompanies = allCompanies
+          .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+          .slice(0, 6)
+        setCompanies(topCompanies)
       } catch (error) {
         console.error('Error fetching companies:', error)
       } finally {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { api } from '@/lib/api'
 import type { User, UserProfile } from '@/types'
 
 interface AuthState {
@@ -23,19 +24,12 @@ export function useAuth() {
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single()
-
-      if (error) throw error
-
-      setState(prev => ({ ...prev, userProfile: data }))
+      const profile = await api.getProfile(userId)
+      setState(prev => ({ ...prev, userProfile: profile }))
     } catch (error) {
       console.error('Error fetching user profile:', error)
     }
-  }, [supabase])
+  }, [])
 
   const checkUser = useCallback(async () => {
     try {

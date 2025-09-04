@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { LayoutDashboard, Briefcase, MessageSquare, DollarSign, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { api } from '@/lib/api'
 import { useAuthContext } from '@/providers/auth-provider'
 import { formatBudget, getTimeAgo } from '@/lib/utils'
 import type { ServiceListing, Offer } from '@/types'
@@ -17,7 +18,6 @@ export function Dashboard() {
   const [receivedOffers, setReceivedOffers] = useState<Offer[]>([])
   const [loading, setLoading] = useState(true)
 
-  const supabase = createClient()
 
   useEffect(() => {
     if (user) {
@@ -29,19 +29,14 @@ export function Dashboard() {
     try {
       setLoading(true)
       
-      // Get user's listings
-      const { data: listings, error: listingsError } = await supabase
-        .from('service_listings')
-        .select('*, offers(*)')
-        .eq('client_id', user?.id)
-        .order('created_at', { ascending: false })
-
-      if (listingsError) throw listingsError
-
-      setUserListings(listings || [])
+      // Get all listings and filter for current user
+      const allListings = await api.getListings()
+      const userListings = allListings.filter(listing => listing.client_id === user?.id)
+      
+      setUserListings(userListings)
       
       // Extract all offers from user's listings
-      const offers = listings?.flatMap(listing => 
+      const offers = userListings?.flatMap(listing => 
         listing.offers?.map(offer => ({
           ...offer,
           listing_title: listing.title,
