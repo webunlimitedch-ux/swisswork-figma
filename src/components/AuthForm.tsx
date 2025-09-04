@@ -7,24 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Alert, AlertDescription } from './ui/alert';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Building2, User, ArrowLeft, Mail } from 'lucide-react';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
-import { supabase } from '../utils/supabase/client';
+import { auth } from '../lib/supabase';
+import { api } from '../lib/api';
+import { validateAuthForm } from '../utils/validation';
+import type { AuthFormData, AuthFormProps } from '../types';
 
-const categories = [
-  'Web Design & Entwicklung',
-  'Grafikdesign',
-  'Marketing & Werbung',
-  'Content-Erstellung',
-  'Fotografie',
-  'Videoproduktion',
-  'Beratung',
-  'Übersetzung',
-  'Rechtsdienstleistungen',
-  'Buchhaltung',
-  'Andere'
-];
-
-export function AuthForm({ onAuthSuccess }) {
+export function AuthForm({ onAuthSuccess }: AuthFormProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [passwordResetEmail, setPasswordResetEmail] = useState('');
@@ -32,7 +20,7 @@ export function AuthForm({ onAuthSuccess }) {
   const [loading, setLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AuthFormData>({
     email: '',
     password: '',
     confirmPassword: '',
@@ -44,32 +32,19 @@ export function AuthForm({ onAuthSuccess }) {
     e.preventDefault();
     setLoading(true);
     setError('');
-
-    if (!isLogin) {
-      if (formData.password !== formData.confirmPassword) {
-        setError('Passwörter stimmen nicht überein');
-        setLoading(false);
-        return;
-      }
-      if (formData.password.length < 6) {
-        setError('Passwort muss mindestens 6 Zeichen lang sein');
-        setLoading(false);
-        return;
-      }
-      if (!formData.name.trim()) {
-        setError('Bitte geben Sie Ihren Namen ein');
-        setLoading(false);
-        return;
-      }
+    
+    // Validate form data
+    const validationErrors = validateAuthForm(formData, isLogin);
+    if (validationErrors.length > 0) {
+      setError(validationErrors[0].message);
+      setLoading(false);
+      return;
     }
 
     try {
       if (isLogin) {
         // Login
-        const { data: { session }, error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
+        const { data: { session }, error } = await auth.signIn(formData.email, formData.password);
 
         if (error) {
           setError('Anmeldung fehlgeschlagen: ' + error.message);
@@ -78,37 +53,20 @@ export function AuthForm({ onAuthSuccess }) {
         }
 
         if (session?.user && session?.access_token) {
-          onAuthSuccess(session.user, session.access_token);
+          onAuthSuccess();
         }
       } else {
         // Register
-        const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-f4f78c5a/signup`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-            name: formData.name,
-            accountType: formData.accountType,
-          }),
-        });
+        const response = await api.signUp(formData);
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          setError(data.error || 'Registrierung fehlgeschlagen');
+        if (response.error) {
+          setError(response.error);
           setLoading(false);
           return;
         }
 
         // Auto-login after successful registration
-        const { data: { session }, error: loginError } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
+        const { data: { session }, error: loginError } = await auth.signIn(formData.email, formData.password);
 
         if (loginError) {
           setError('Automatische Anmeldung fehlgeschlagen: ' + loginError.message);
@@ -117,7 +75,7 @@ export function AuthForm({ onAuthSuccess }) {
         }
 
         if (session?.user && session?.access_token) {
-          onAuthSuccess(session.user, session.access_token);
+          onAuthSuccess();
         }
       }
     } catch (error) {
@@ -133,9 +91,10 @@ export function AuthForm({ onAuthSuccess }) {
     setError('');
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(passwordResetEmail, {
-        redirectTo: `${window.location.origin}?type=recovery`,
-      });
+      const { error } = await auth.resetPassword(
+        passwordResetEmail, 
+        `${window.location.origin}?type=recovery`
+      );
 
       if (error) {
         setError('Passwort-Reset fehlgeschlagen: ' + error.message);
@@ -153,7 +112,7 @@ export function AuthForm({ onAuthSuccess }) {
     }
   }
 
-  function handleInputChange(field, value) {
+  function handleInputChange(field: keyof AuthFormData, value: string) {
     setFormData(prev => ({
       ...prev,
       [field]: value

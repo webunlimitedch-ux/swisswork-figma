@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
-import { Button } from './components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
-import { Badge } from './components/ui/badge';
-import { Building2, LogOut, User, Plus, Search } from 'lucide-react';
-import { projectId, publicAnonKey } from './utils/supabase/info';
-import { supabase } from './utils/supabase/client';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { LoadingSpinner } from './components/common/LoadingSpinner';
+import { Header } from './components/layout/Header';
 import { AuthForm } from './components/AuthForm';
 import { PasswordResetConfirm } from './components/PasswordResetConfirm';
 import { CompanyProfile } from './components/CompanyProfile';
@@ -15,103 +11,45 @@ import { EditListing } from './components/EditListing';
 import { Dashboard } from './components/Dashboard';
 import { ListingDetail } from './components/ListingDetail';
 import { BrowseCompanies } from './components/BrowseCompanies';
+import { useAuth } from './hooks/useAuth';
+import type { ServiceListing } from './types';
+import { Building2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [accessToken, setAccessToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, userProfile, accessToken, loading, signOut, updateProfile } = useAuth();
   const [currentView, setCurrentView] = useState('listings');
-  const [selectedListing, setSelectedListing] = useState(null);
-  const [editingListing, setEditingListing] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
+  const [selectedListing, setSelectedListing] = useState<ServiceListing | null>(null);
+  const [editingListing, setEditingListing] = useState<ServiceListing | null>(null);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   useEffect(() => {
-    checkUser();
-    
     // Check for password reset URL parameters
     const url = new URL(window.location.href);
     const type = url.searchParams.get('type');
     if (type === 'recovery') {
       setShowPasswordReset(true);
     }
-    
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        setUser(null);
-        setAccessToken(null);
-        setUserProfile(null);
-        setCurrentView('listings');
-        setShowPasswordReset(false);
-      } else if (session?.user) {
-        setUser(session.user);
-        setAccessToken(session.access_token);
-        fetchUserProfile(session.user.id);
-      }
-    });
-
-    return () => {
-      subscription?.unsubscribe();
-    };
   }, []);
 
-  async function checkUser() {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(session.user);
-        setAccessToken(session.access_token);
-        await fetchUserProfile(session.user.id);
-      }
-    } catch (error) {
-      console.error('Error checking user session:', error);
-    } finally {
-      setLoading(false);
-    }
+  function handleSignOut() {
+    signOut();
+    setCurrentView('listings');
+    setSelectedListing(null);
+    setEditingListing(null);
+    setShowPasswordReset(false);
   }
 
-  async function fetchUserProfile(userId) {
-    try {
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-f4f78c5a/profile/${userId}`, {
-        headers: {
-          'Authorization': `Bearer ${publicAnonKey}`,
-        },
-      });
-      
-      if (response.ok) {
-        const profile = await response.json();
-        setUserProfile(profile);
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-    }
+  function handleAuthSuccess() {
+    setCurrentView('listings');
   }
 
-  async function handleSignOut() {
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      setAccessToken(null);
-      setUserProfile(null);
-      setCurrentView('listings');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  }
-
-  function handleAuthSuccess(userData, token) {
-    setUser(userData);
-    setAccessToken(token);
-    fetchUserProfile(userData.id);
-  }
-
-  function handleViewListing(listing) {
+  function handleViewListing(listing: ServiceListing) {
     setSelectedListing(listing);
     setCurrentView('listing-detail');
   }
 
-  function handleEditListing(listing) {
+  function handleEditListing(listing: ServiceListing) {
     setEditingListing(listing);
     setCurrentView('edit-listing');
   }
@@ -121,7 +59,7 @@ export default function App() {
     setCurrentView('auth');
   }
 
-  function handleEditSuccess(updatedListing) {
+  function handleEditSuccess() {
     // Update the listing in state and navigate back to dashboard
     setEditingListing(null);
     setCurrentView('dashboard');
@@ -134,11 +72,11 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p>Lädt...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <LoadingSpinner 
+          size="lg" 
+          text="SwissWork wird geladen..."
+        />
       </div>
     );
   }
@@ -166,13 +104,6 @@ export default function App() {
               <CardContent>
                 <AuthForm onAuthSuccess={handleAuthSuccess} />
                 <div className="mt-4 text-center">
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => setCurrentView('listings')}
-                    className="text-sm"
-                  >
-                    ← Zurück zum Durchsuchen
-                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -214,160 +145,87 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl text-blue-900 cursor-pointer" onClick={() => {
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-50">
+        <Header
+          user={user}
+          userProfile={userProfile}
+          currentView={currentView}
+          onViewChange={(view) => {
+            setCurrentView(view);
+            if (view === 'listings') {
+              setSelectedListing(null);
+              setEditingListing(null);
+            }
+          }}
+          onSignOut={handleSignOut}
+        />
+
+        <main className="container mx-auto px-4 py-8">
+          {currentView === 'listings' && (
+            <ServiceListings 
+              accessToken={accessToken} 
+              onViewListing={handleViewListing}
+              onAuthRequired={handleAuthRequired}
+            />
+          )}
+          
+          {currentView === 'companies' && (
+            <BrowseCompanies 
+              accessToken={accessToken} 
+              onAuthRequired={handleAuthRequired}
+            />
+          )}
+          
+          {user && currentView === 'create-listing' && (
+            <CreateListing 
+              accessToken={accessToken!} 
+              onSuccess={() => setCurrentView('dashboard')}
+            />
+          )}
+          
+          {user && currentView === 'edit-listing' && editingListing && (
+            <EditListing 
+              listing={editingListing}
+              accessToken={accessToken!} 
+              onSuccess={handleEditSuccess}
+              onCancel={handleEditCancel}
+            />
+          )}
+          
+          {user && currentView === 'profile' && (
+            <CompanyProfile 
+              accessToken={accessToken!} 
+              userProfile={userProfile}
+              onProfileUpdate={updateProfile}
+            />
+          )}
+          
+          {user && currentView === 'dashboard' && (
+            <Dashboard 
+              accessToken={accessToken!} 
+              user={user}
+              onViewListing={handleViewListing}
+              onEditListing={handleEditListing}
+            />
+          )}
+          
+          {currentView === 'listing-detail' && selectedListing && (
+            <ListingDetail 
+              listing={selectedListing}
+              accessToken={accessToken}
+              userProfile={userProfile}
+              onBack={() => {
                 setCurrentView('listings');
                 setSelectedListing(null);
-                setEditingListing(null);
-              }}>
-                <Building2 className="inline-block mr-2 mb-1" size={28} />
-                SwissWork
-              </h1>
-              
-              <nav className="hidden md:flex space-x-6">
-                <Button 
-                  variant={currentView === 'listings' ? 'default' : 'ghost'}
-                  onClick={() => {
-                    setCurrentView('listings');
-                    setSelectedListing(null);
-                    setEditingListing(null);
-                  }}
-                >
-                  <Search className="mr-2" size={16} />
-                  Jobs durchsuchen
-                </Button>
-                <Button 
-                  variant={currentView === 'companies' ? 'default' : 'ghost'}
-                  onClick={() => setCurrentView('companies')}
-                >
-                  <Building2 className="mr-2" size={16} />
-                  Unternehmen durchsuchen
-                </Button>
-                {user && (
-                  <Button 
-                    variant={currentView === 'create-listing' ? 'default' : 'ghost'}
-                    onClick={() => setCurrentView('create-listing')}
-                  >
-                    <Plus className="mr-2" size={16} />
-                    Job ausschreiben
-                  </Button>
-                )}
-              </nav>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              {user ? (
-                <>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => setCurrentView('profile')}
-                    className="flex items-center space-x-2"
-                  >
-                    <User size={16} />
-                    <span className="hidden sm:inline">
-                      {userProfile?.accountType === 'company' ? userProfile?.companyName : userProfile?.name || user.email}
-                    </span>
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => setCurrentView('dashboard')}
-                  >
-                    Dashboard
-                  </Button>
-                  
-                  <Button variant="ghost" onClick={handleSignOut}>
-                    <LogOut size={16} />
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setCurrentView('auth')}
-                  >
-                    Anmelden
-                  </Button>
-                  <Button 
-                    onClick={() => setCurrentView('auth')}
-                  >
-                    Job ausschreiben
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
-        {currentView === 'listings' && (
-          <ServiceListings 
-            accessToken={accessToken} 
-            onViewListing={handleViewListing}
-            onAuthRequired={handleAuthRequired}
-          />
-        )}
-        
-        {currentView === 'companies' && (
-          <BrowseCompanies 
-            accessToken={accessToken} 
-            onAuthRequired={handleAuthRequired}
-          />
-        )}
-        
-        {user && currentView === 'create-listing' && (
-          <CreateListing 
-            accessToken={accessToken} 
-            onSuccess={() => setCurrentView('dashboard')}
-          />
-        )}
-        
-        {user && currentView === 'edit-listing' && editingListing && (
-          <EditListing 
-            listing={editingListing}
-            accessToken={accessToken} 
-            onSuccess={handleEditSuccess}
-            onCancel={handleEditCancel}
-          />
-        )}
-        
-        {user && currentView === 'profile' && (
-          <CompanyProfile 
-            accessToken={accessToken} 
-            userProfile={userProfile}
-            onProfileUpdate={setUserProfile}
-          />
-        )}
-        
-        {user && currentView === 'dashboard' && (
-          <Dashboard 
-            accessToken={accessToken} 
-            user={user}
-            onViewListing={handleViewListing}
-            onEditListing={handleEditListing}
-          />
-        )}
-        
-        {currentView === 'listing-detail' && selectedListing && (
-          <ListingDetail 
-            listing={selectedListing}
-            accessToken={accessToken}
-            userProfile={userProfile}
-            onBack={() => {
-              setCurrentView('listings');
-              setSelectedListing(null);
-            }}
-            onAuthRequired={handleAuthRequired}
-            onEdit={handleEditListing}
-            onNavigateToProfile={() => setCurrentView('profile')}
-          />
-        )}
-      </main>
-    </div>
+              }}
+              onAuthRequired={handleAuthRequired}
+              onEdit={handleEditListing}
+              onNavigateToProfile={() => setCurrentView('profile')}
+            />
+          )}
+        </main>
+      </div>
+    </ErrorBoundary>
   );
 }

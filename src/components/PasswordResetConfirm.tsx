@@ -5,9 +5,14 @@ import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
 import { CheckCircle, Lock } from 'lucide-react';
-import { supabase } from '../utils/supabase/client';
+import { auth } from '../lib/supabase';
 
-export function PasswordResetConfirm({ onSuccess, onError }) {
+interface PasswordResetConfirmProps {
+  onSuccess: () => void;
+  onError: (error: string) => void;
+}
+
+export function PasswordResetConfirm({ onSuccess, onError }: PasswordResetConfirmProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -32,9 +37,7 @@ export function PasswordResetConfirm({ onSuccess, onError }) {
     }
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
+      const { error } = await auth.updatePassword(newPassword);
 
       if (error) {
         setError('Passwort-Update fehlgeschlagen: ' + error.message);
