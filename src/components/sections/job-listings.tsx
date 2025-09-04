@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Eye, MapPin, Clock, DollarSign } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { api } from '@/lib/api'
 import { formatBudget, getTimeAgo } from '@/lib/utils'
 import type { ServiceListing } from '@/types'
 
@@ -16,18 +16,16 @@ export function JobListings() {
 
   useEffect(() => {
     async function fetchListings() {
-      const supabase = createClient()
-      
       try {
-        const { data, error } = await supabase
-          .from('service_listings')
-          .select('*')
-          .eq('status', 'open')
-          .order('created_at', { ascending: false })
-          .limit(6)
-
-        if (error) throw error
-        setListings(data || [])
+        const response = await api.getListings()
+        if (response.success && Array.isArray(response.data)) {
+          // Filter for open listings and limit to 6
+          const openListings = response.data
+            .filter(listing => listing.status === 'open')
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .slice(0, 6)
+          setListings(openListings)
+        }
       } catch (error) {
         console.error('Error fetching listings:', error)
       } finally {

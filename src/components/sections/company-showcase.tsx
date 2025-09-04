@@ -16,12 +16,14 @@ export function CompanyShowcase() {
   useEffect(() => {
     async function fetchCompanies() {
       try {
-        const allCompanies = await api.getCompanies()
-        // Limit to 6 companies and sort by rating
-        const topCompanies = allCompanies
-          .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-          .slice(0, 6)
-        setCompanies(topCompanies)
+        const response = await api.getCompanies()
+        if (response.success && Array.isArray(response.data)) {
+          // Limit to 6 companies and sort by rating
+          const topCompanies = response.data
+            .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+            .slice(0, 6)
+          setCompanies(topCompanies)
+        }
       } catch (error) {
         console.error('Error fetching companies:', error)
       } finally {
