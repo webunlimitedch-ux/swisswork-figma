@@ -1,41 +1,49 @@
-# SwissWork - Freelance Marketplace Platform
+# SwissWork - Schweizer Freelance Marktplatz
 
-Eine moderne, skalierbare Freelance-Marktplatz-Plattform für die Schweiz, entwickelt mit React, TypeScript, Vite und Supabase.
+Eine moderne, skalierbare Freelance-Marktplatz-Plattform für die Schweiz, entwickelt mit Next.js 14, TypeScript und Supabase.
 
 ## 🚀 Features
 
-- **Benutzerauthentifizierung**: Sichere Anmeldung/Registrierung mit Supabase Auth
-- **Dual Account Types**: Privatpersonen und Unternehmen
-- **Job Listings**: Erstellen, bearbeiten und durchsuchen von Stellenausschreibungen
-- **Offer System**: Unternehmen können Angebote auf Jobs abgeben
-- **Company Profiles**: Detaillierte Unternehmensprofile mit Portfolio
-- **Responsive Design**: Optimiert für Desktop und Mobile
-- **TypeScript**: Vollständige Typisierung für bessere Entwicklererfahrung
-- **Performance**: Optimiert für schnelle Ladezeiten
+- **Next.js 14** mit App Router und Server Components
+- **TypeScript** für vollständige Typisierung
+- **Supabase** für Authentication und Database
+- **Tailwind CSS** für modernes Styling
+- **Radix UI** für accessible UI Components
+- **Responsive Design** für alle Geräte
+- **Performance-optimiert** mit Code-Splitting
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React 18, TypeScript, Vite
-- **Styling**: Tailwind CSS, Radix UI Components
-- **Backend**: Supabase (Auth, Database, Edge Functions)
-- **Deployment**: Vercel-ready
-- **State Management**: React Hooks, Custom Hooks
-- **Form Validation**: Custom validation utilities
+- **Framework**: Next.js 14
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: Radix UI + shadcn/ui
+- **Backend**: Supabase (Auth, Database, Real-time)
+- **Deployment**: Vercel
 - **Icons**: Lucide React
 
 ## 📁 Projektstruktur
 
 ```
 src/
-├── components/           # React Components
-│   ├── common/          # Wiederverwendbare Components
-│   ├── layout/          # Layout Components
-│   └── ui/              # UI Components (Radix-basiert)
-├── hooks/               # Custom React Hooks
-├── lib/                 # Bibliotheken und Konfiguration
-├── types/               # TypeScript Type Definitionen
-├── utils/               # Utility Funktionen
-└── styles/              # Globale Styles
+├── app/                    # Next.js App Router
+│   ├── globals.css        # Globale Styles
+│   ├── layout.tsx         # Root Layout
+│   ├── page.tsx           # Homepage
+│   ├── auth/              # Authentication Pages
+│   └── dashboard/         # Dashboard Pages
+├── components/            # React Components
+│   ├── ui/               # UI Components (shadcn/ui)
+│   ├── layout/           # Layout Components
+│   ├── sections/         # Page Sections
+│   ├── auth/             # Auth Components
+│   └── dashboard/        # Dashboard Components
+├── lib/                  # Libraries & Configuration
+│   ├── supabase/         # Supabase Client/Server
+│   └── utils.ts          # Utility Functions
+├── hooks/                # Custom React Hooks
+├── providers/            # Context Providers
+└── types/                # TypeScript Definitions
 ```
 
 ## 🚀 Schnellstart
@@ -61,13 +69,13 @@ npm install
 
 3. Environment Variables konfigurieren:
 ```bash
-cp .env.example .env
+cp .env.local.example .env.local
 ```
 
 Fügen Sie Ihre Supabase Credentials hinzu:
 ```env
-VITE_SUPABASE_PROJECT_ID=your_project_id
-VITE_SUPABASE_ANON_KEY=your_anon_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 4. Development Server starten:
@@ -78,94 +86,98 @@ npm run dev
 ### Supabase Setup
 
 1. Erstellen Sie ein neues Supabase Projekt
-2. Führen Sie die SQL Migrationen aus (siehe `supabase/migrations/`)
-3. Deployen Sie die Edge Functions (siehe `supabase/functions/`)
-4. Konfigurieren Sie die Authentication Settings
+2. Führen Sie die SQL Migrationen aus
+3. Konfigurieren Sie die Authentication Settings
+4. Fügen Sie die Credentials zu `.env.local` hinzu
 
 ## 🏗️ Build & Deployment
 
 ### Lokaler Build
 ```bash
 npm run build
+npm start
 ```
 
 ### Vercel Deployment
-
-Das Projekt ist Vercel-ready. Einfach mit Ihrem Git Repository verbinden:
 
 1. Repository zu Vercel hinzufügen
 2. Environment Variables konfigurieren
 3. Deploy!
 
-Die `vercel.json` Konfiguration ist bereits optimiert.
+Das Projekt ist automatisch für Vercel optimiert.
 
-## 🧪 Development
+## 📊 Performance Features
 
-### Code Style
-
-- **TypeScript**: Strikte Typisierung aktiviert
-- **ESLint**: Code Quality Rules
-- **Prettier**: Code Formatting
-- **Conventional Commits**: Commit Message Standards
-
-### Custom Hooks
-
-- `useAuth`: Authentication State Management
-- `useListings`: Listings Data Management
-- Weitere Hooks für spezifische Features
-
-### API Layer
-
-Zentralisierte API Calls über `src/lib/api.ts`:
-- Type-safe API Calls
-- Error Handling
-- Request/Response Transformation
-
-## 📊 Performance
-
-- **Code Splitting**: Automatisch durch Vite
-- **Tree Shaking**: Unused Code Elimination
-- **Asset Optimization**: Bilder und Fonts optimiert
-- **Caching**: Vercel Edge Caching konfiguriert
+- **Server Components** für bessere Performance
+- **Dynamic Imports** für Code-Splitting
+- **Image Optimization** mit Next.js Image
+- **Font Optimization** mit Next.js Fonts
+- **Bundle Analyzer** für Bundle-Optimierung
 
 ## 🔒 Sicherheit
 
-- **Authentication**: Supabase Auth mit JWT
-- **Authorization**: Row Level Security (RLS)
-- **Input Validation**: Client & Server-side
-- **XSS Protection**: Sanitized Inputs
-- **CSRF Protection**: Supabase built-in
+- **Supabase Auth** mit JWT
+- **Row Level Security** (RLS)
+- **Type-safe** API Calls
+- **Input Validation** auf Client & Server
+- **Security Headers** konfiguriert
 
-## 🌐 Internationalisierung
+## 🎨 UI/UX Features
 
-Vorbereitet für i18n:
-- Deutsche Texte als Standard
-- Struktur für weitere Sprachen vorhanden
+- **Responsive Design** für alle Geräte
+- **Dark Mode** Support (vorbereitet)
+- **Accessibility** mit Radix UI
+- **Loading States** und Error Boundaries
+- **Toast Notifications** mit Sonner
+
+## 🧪 Development
+
+### Scripts
+
+```bash
+npm run dev          # Development Server
+npm run build        # Production Build
+npm run start        # Production Server
+npm run lint         # ESLint
+npm run type-check   # TypeScript Check
+```
+
+### Code Style
+
+- **TypeScript** strikte Konfiguration
+- **ESLint** für Code Quality
+- **Prettier** für Code Formatting
+- **Conventional Commits** empfohlen
 
 ## 📱 Mobile Support
 
-- **Responsive Design**: Mobile-first Approach
-- **Touch Optimized**: Touch-friendly UI Elements
-- **Performance**: Optimiert für mobile Verbindungen
+- **Mobile-first** Design Approach
+- **Touch-optimized** UI Elements
+- **Progressive Web App** ready
+- **Offline Support** (vorbereitet)
+
+## 🌐 Internationalisierung
+
+- **Deutsch** als Standard
+- **i18n-ready** Struktur
+- **Locale-aware** Formatierung
 
 ## 🤝 Contributing
 
 1. Fork das Repository
-2. Feature Branch erstellen (`git checkout -b feature/amazing-feature`)
-3. Changes committen (`git commit -m 'Add amazing feature'`)
-4. Branch pushen (`git push origin feature/amazing-feature`)
-5. Pull Request erstellen
+2. Feature Branch erstellen
+3. Changes committen
+4. Pull Request erstellen
 
 ## 📄 Lizenz
 
-Dieses Projekt ist unter der MIT Lizenz lizenziert.
+MIT License - siehe LICENSE Datei
 
 ## 🆘 Support
 
-Bei Fragen oder Problemen:
-1. GitHub Issues erstellen
-2. Dokumentation prüfen
-3. Community Discord beitreten
+- GitHub Issues für Bugs
+- Discussions für Fragen
+- Wiki für Dokumentation
 
 ---
 
