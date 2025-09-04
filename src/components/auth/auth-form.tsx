@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Building2, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { api } from '@/lib/api'
 import { toast } from 'sonner'
 import type { AuthFormData } from '@/types'
 
@@ -36,6 +35,11 @@ export function AuthForm() {
     setLoading(true)
 
     try {
+      if (!supabase) {
+        toast.error('Demo-Modus: Anmeldung nicht verfügbar')
+        return
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
@@ -64,16 +68,29 @@ export function AuthForm() {
     }
 
     try {
-      const response = await api.signUp(formData)
-
-      if (response.success) {
-        toast.success('Konto erfolgreich erstellt!')
-        router.push('/dashboard')
-      } else {
-        toast.error(response.error || 'Registrierung fehlgeschlagen')
+      if (!supabase) {
+        toast.error('Demo-Modus: Registrierung nicht verfügbar')
+        return
       }
+
+      const { error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            name: formData.name,
+            account_type: formData.accountType,
+          }
+        }
+      })
+
+      if (error) throw error
+
+      toast.success('Konto erfolgreich erstellt!')
+      router.push('/dashboard')
     } catch (error: unknown) {
-      toast.error('Ein Fehler ist aufgetreten')
+      const errorMessage = error instanceof Error ? error.message : 'Registrierung fehlgeschlagen'
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -85,6 +102,11 @@ export function AuthForm() {
         <CardTitle>Willkommen bei SwissWork</CardTitle>
         <CardDescription>
           Melden Sie sich an oder erstellen Sie ein neues Konto
+          {!supabase && (
+            <span className="block mt-2 text-orange-600 text-sm">
+              Demo-Modus: Supabase nicht konfiguriert
+            </span>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>

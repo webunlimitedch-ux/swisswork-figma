@@ -6,31 +6,61 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Building2, Star, Award, MapPin } from 'lucide-react'
-import { api } from '@/lib/api'
-import type { UserProfile } from '@/types'
+
+interface MockCompany {
+  id: string
+  company_name: string
+  description: string
+  category: string
+  location: string
+  rating: number
+  completed_jobs: number
+  created_at: string
+}
+
+const MOCK_COMPANIES: MockCompany[] = [
+  {
+    id: '1',
+    company_name: 'WebStudio Zürich',
+    description: 'Spezialisiert auf moderne Webentwicklung und E-Commerce-Lösungen für KMU.',
+    category: 'Web Design & Entwicklung',
+    location: 'Zürich',
+    rating: 4.8,
+    completed_jobs: 45,
+    created_at: '2023-01-15T00:00:00Z',
+  },
+  {
+    id: '2',
+    company_name: 'DesignHaus Basel',
+    description: 'Kreative Grafikdesign-Agentur mit Fokus auf Branding und Corporate Identity.',
+    category: 'Grafikdesign',
+    location: 'Basel',
+    rating: 4.9,
+    completed_jobs: 32,
+    created_at: '2022-08-20T00:00:00Z',
+  },
+  {
+    id: '3',
+    company_name: 'MarketingPro Bern',
+    description: 'Full-Service Marketing-Agentur für digitale Transformation und Wachstum.',
+    category: 'Marketing & Werbung',
+    location: 'Bern',
+    rating: 4.7,
+    completed_jobs: 28,
+    created_at: '2023-03-10T00:00:00Z',
+  }
+]
 
 export function CompanyShowcase() {
-  const [companies, setCompanies] = useState<UserProfile[]>([])
+  const [companies, setCompanies] = useState<MockCompany[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchCompanies() {
-      try {
-        const response = await api.getCompanies()
-        if (response.success && Array.isArray(response.data)) {
-          const topCompanies = response.data
-            .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-            .slice(0, 6)
-          setCompanies(topCompanies)
-        }
-      } catch (error) {
-        console.error('Error fetching companies:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchCompanies()
+    // Simulate API call with mock data
+    setTimeout(() => {
+      setCompanies(MOCK_COMPANIES)
+      setLoading(false)
+    }, 500)
   }, [])
 
   if (loading) {
@@ -88,7 +118,7 @@ export function CompanyShowcase() {
                       <div className="flex items-center justify-center mb-1">
                         <Star className="text-yellow-500" size={14} />
                       </div>
-                      <p className="text-sm font-semibold">{company.rating || '0.0'}</p>
+                      <p className="text-sm font-semibold">{company.rating}</p>
                       <p className="text-xs text-muted-foreground">Bewertung</p>
                     </div>
                     
@@ -96,7 +126,7 @@ export function CompanyShowcase() {
                       <div className="flex items-center justify-center mb-1">
                         <Award className="text-green-500" size={14} />
                       </div>
-                      <p className="text-sm font-semibold">{company.completed_jobs || 0}</p>
+                      <p className="text-sm font-semibold">{company.completed_jobs}</p>
                       <p className="text-xs text-muted-foreground">Jobs</p>
                     </div>
                     
@@ -113,7 +143,7 @@ export function CompanyShowcase() {
                   
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <MapPin size={14} />
-                    <span>{company.location || 'Schweiz'}</span>
+                    <span>{company.location}</span>
                   </div>
                   
                   <Button variant="outline" className="w-full" size="sm">

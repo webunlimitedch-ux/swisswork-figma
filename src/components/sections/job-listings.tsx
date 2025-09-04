@@ -6,34 +6,83 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Eye, MapPin, Clock, DollarSign } from 'lucide-react'
-import { api } from '@/lib/api'
-import { formatBudget, getTimeAgo } from '@/lib/utils'
-import type { ServiceListing } from '@/types'
+
+interface MockListing {
+  id: string
+  title: string
+  description: string
+  category: string
+  budget: number
+  timeline: string
+  status: string
+  created_at: string
+}
+
+const MOCK_LISTINGS: MockListing[] = [
+  {
+    id: '1',
+    title: 'Website-Design für Restaurant',
+    description: 'Wir suchen einen erfahrenen Webdesigner für die Erstellung einer modernen Restaurant-Website mit Online-Reservierungssystem.',
+    category: 'Web Design & Entwicklung',
+    budget: 5000,
+    timeline: '2-4 Wochen',
+    status: 'open',
+    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: '2',
+    title: 'Logo-Design für Startup',
+    description: 'Kreatives Logo-Design für ein innovatives Tech-Startup im Bereich nachhaltiger Mobilität.',
+    category: 'Grafikdesign',
+    budget: 1500,
+    timeline: '1-2 Wochen',
+    status: 'open',
+    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: '3',
+    title: 'Marketing-Kampagne für E-Commerce',
+    description: 'Entwicklung einer umfassenden Digital-Marketing-Strategie für einen Online-Shop.',
+    category: 'Marketing & Werbung',
+    budget: 8000,
+    timeline: '1-2 Monate',
+    status: 'open',
+    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  }
+]
+
+function formatBudget(budget: number): string {
+  if (budget >= 1000) {
+    return `CHF ${(budget / 1000).toFixed(1)}k`
+  }
+  return `CHF ${budget.toLocaleString()}`
+}
+
+function getTimeAgo(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+  
+  if (diffInHours < 1) {
+    return 'Vor weniger als einer Stunde'
+  } else if (diffInHours < 24) {
+    return `Vor ${diffInHours} Stunde${diffInHours > 1 ? 'n' : ''}`
+  } else {
+    const diffInDays = Math.floor(diffInHours / 24)
+    return `Vor ${diffInDays} Tag${diffInDays > 1 ? 'en' : ''}`
+  }
+}
 
 export function JobListings() {
-  const [listings, setListings] = useState<ServiceListing[]>([])
+  const [listings, setListings] = useState<MockListing[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchListings() {
-      try {
-        const response = await api.getListings()
-        if (response.success && Array.isArray(response.data)) {
-          // Filter for open listings and limit to 6
-          const openListings = response.data
-            .filter(listing => listing.status === 'open')
-            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-            .slice(0, 6)
-          setListings(openListings)
-        }
-      } catch (error) {
-        console.error('Error fetching listings:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchListings()
+    // Simulate API call with mock data
+    setTimeout(() => {
+      setListings(MOCK_LISTINGS)
+      setLoading(false)
+    }, 500)
   }, [])
 
   if (loading) {

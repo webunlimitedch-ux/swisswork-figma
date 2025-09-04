@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { api } from '@/lib/api'
 import type { User, UserProfile } from '@/types'
 
 interface AuthState {
@@ -25,18 +24,25 @@ export function useAuth() {
   const supabase = createClient()
 
   const fetchUserProfile = useCallback(async (userId: string) => {
+    // Skip if no Supabase client
+    if (!supabase) return
+    
     try {
-      const response = await api.getProfile(userId)
-      if (response.success && response.data) {
-        setState(prev => ({ ...prev, userProfile: response.data! }))
-      }
+      // In demo mode, we don't fetch real profiles
+      console.log('Profile fetch would happen for user:', userId)
     } catch (error) {
       console.error('Error fetching user profile:', error)
     }
-  }, [])
+  }, [supabase])
 
   const checkUser = useCallback(async () => {
     try {
+      // Skip auth check if no Supabase client
+      if (!supabase) {
+        setState(prev => ({ ...prev, loading: false }))
+        return
+      }
+
       const { data: { session }, error } = await supabase.auth.getSession()
       
       if (error) throw error
@@ -55,11 +61,13 @@ export function useAuth() {
     } finally {
       setState(prev => ({ ...prev, loading: false }))
     }
-  }, [fetchUserProfile])
+  }, [supabase, fetchUserProfile])
 
   const signOut = useCallback(async () => {
     try {
-      await supabase.auth.signOut()
+      if (supabase) {
+        await supabase.auth.signOut()
+      }
       setState({
         user: null,
         userProfile: null,
@@ -71,7 +79,7 @@ export function useAuth() {
       console.error('Error signing out:', error)
       setState(prev => ({ ...prev, error: 'Failed to sign out' }))
     }
-  }, [])
+  }, [supabase])
 
   const updateProfile = useCallback((profile: UserProfile) => {
     setState(prev => ({ ...prev, userProfile: profile }))
@@ -79,6 +87,9 @@ export function useAuth() {
 
   useEffect(() => {
     checkUser()
+
+    // Skip auth state listener if no Supabase client
+    if (!supabase) return
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -104,7 +115,7 @@ export function useAuth() {
     return () => {
       subscription?.unsubscribe()
     }
-  }, [checkUser, fetchUserProfile])
+  }, [checkUser, fetchUserProfile, supabase])
 
   return {
     ...state,
